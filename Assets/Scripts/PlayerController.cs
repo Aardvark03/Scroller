@@ -8,20 +8,57 @@ public class PlayerController : MonoBehaviour {
     public float vMax = 2;
     public float drag = 0.1f;
 
-    Vector2 velocity; 
-    bool jumping;
+    public bool onGround;
+
+    Vector2 velocity;
+
+    Bounds playerBounds;
 
     void Start () {
-        jumping = true;
-        velocity = new Vector2(0, 0); 
+        velocity = new Vector2(0, 0);
+        playerBounds = renderer.bounds;
+        onGround = false;
+    }
+
+    bool isHit(RaycastHit2D hit) {
+        return hit.collider != null;
+    }
+
+    void checkDown() {
+            Vector2 leftSideVec = new Vector2(transform.position.x - playerBounds.extents.x, transform.position.y);
+            Vector2 rightSideVec = new Vector2(transform.position.x + playerBounds.extents.x, transform.position.y);
+
+            RaycastHit2D leftSide = Physics2D.Raycast(leftSideVec, -Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
+            RaycastHit2D rightSide = Physics2D.Raycast(rightSideVec, -Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
+
+            if (isHit(leftSide) || isHit(rightSide)) {
+                    velocity.y = 0f;
+                    onGround = true;
+            } else {
+                onGround = false;
+            }
+    }
+
+    void checkLeft() {
+
+    }
+
+    void checkRight() {
+
+    }
+
+    void checkUp() {
+
     }
     
     void Update () {
-        Vector3 targetPos = rigidbody2D.position;
+        Vector3 targetPos = transform.position;
 
         Vector2 acceleration = new Vector2(0f, 0f);
 
-        if (jumping) {
+        checkDown();
+
+        if (!onGround) {
             acceleration.y = gravity; 
         }
 
@@ -52,9 +89,8 @@ public class PlayerController : MonoBehaviour {
         }
 
         if (Input.GetKey("w")) {
-            if (!jumping) {
+            if (onGround) {
                 acceleration.y += jumpAcc; 
-                jumping = true; 
             } 
         }
 
@@ -74,12 +110,6 @@ public class PlayerController : MonoBehaviour {
 
         targetPos += (Vector3) distanceToMove;
 
-        rigidbody2D.MovePosition(targetPos);
-    }
-
-    void OnTriggerEnter2D(Collider2D enteringCollider) {
-        Debug.Log("Entering Trigger!");
-        jumping = false;
-        velocity.y = 0f;
+        transform.position = targetPos;
     }
 }
