@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     void moveOutOfCollider(Collider2D collider, Vector2 dir) {
+
         if (dir.x != 0) {
             float distanceX = collider.bounds.extents.x + playerBounds.extents.x;
             position.x = collider.transform.position.x + distanceX * dir.x;
@@ -66,11 +67,14 @@ public class PlayerController : MonoBehaviour {
     }
 
     void checkDown() {
-            Vector2 leftSideVec = new Vector2(position.x - playerBounds.extents.x * 0.8f, position.y);
-            Vector2 rightSideVec = new Vector2(position.x + playerBounds.extents.x * 0.8f, position.y);
+            Vector2 leftSideVec = new Vector2(position.x - playerBounds.extents.x * 0.9f, position.y);
+            Vector2 rightSideVec = new Vector2(position.x + playerBounds.extents.x * 0.9f, position.y);
 
             RaycastHit2D leftSide = Physics2D.Raycast(leftSideVec, -Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
             RaycastHit2D rightSide = Physics2D.Raycast(rightSideVec, -Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
+
+            Debug.DrawRay(leftSideVec, -Vector3.up * playerBounds.extents.y, Color.red);
+            Debug.DrawRay(rightSideVec, -Vector3.up * playerBounds.extents.y, Color.red);
 
             if (isHit(leftSide)) {
                 onGround = true;
@@ -87,11 +91,14 @@ public class PlayerController : MonoBehaviour {
     }
 
     Collider2D checkSide(Vector2 dir) {
-        Vector2 headVec = new Vector2(position.x, position.y + playerBounds.extents.y);
+        Vector2 headVec = new Vector2(position.x, position.y + playerBounds.extents.y * 0.9f);
         Vector2 bellyVec = new Vector2(position.x, position.y);
 
         RaycastHit2D headHit = Physics2D.Raycast(headVec, dir, playerBounds.extents.x, LayerMask.GetMask("Level"));
         RaycastHit2D bellyHit = Physics2D.Raycast(bellyVec, dir, playerBounds.extents.x, LayerMask.GetMask("Level"));
+
+        Debug.DrawRay(headVec, dir * playerBounds.extents.x, Color.red);
+        Debug.DrawRay(bellyVec, dir * playerBounds.extents.x, Color.red);
 
         if (isHit(headHit)) {
             return headHit.collider;
@@ -123,7 +130,23 @@ public class PlayerController : MonoBehaviour {
     }
 
     void checkUp() {
+        Vector2 leftVec = new Vector2(position.x - playerBounds.extents.x * 0.9f, position.y);
+        Vector2 rightVec = new Vector2(position.x + playerBounds.extents.x * 0.9f, position.y);
 
+        RaycastHit2D leftHit = Physics2D.Raycast(leftVec, Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
+        RaycastHit2D rightHit = Physics2D.Raycast(rightVec, Vector2.up, playerBounds.extents.y, LayerMask.GetMask("Level"));
+        
+        Debug.DrawRay(leftVec, Vector2.up * playerBounds.extents.y, Color.red);
+        Debug.DrawRay(rightVec, Vector2.up * playerBounds.extents.y, Color.red);
+        
+        if (isHit(leftHit)) {
+            velocity.y = 0f;
+            moveOutOfCollider(leftHit.collider, -Vector2.up);
+        }
+        if (isHit(rightHit)) {
+            velocity.y = 0f;
+            moveOutOfCollider(rightHit.collider, -Vector2.up);
+        }
     }
 
     void applyGravity() {
@@ -189,9 +212,10 @@ public class PlayerController : MonoBehaviour {
     }
 
     void checkCollisions() {
-        checkDown();
         checkLeft();
         checkRight();
+        checkUp();
+        checkDown();
     }
     
     void Update () {
