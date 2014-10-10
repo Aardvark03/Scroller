@@ -9,20 +9,43 @@ public class PlayerController : MonoBehaviour {
     public float drag = 0.1f;
 
     public bool onGround;
+    public bool facingRight;
+    public bool walking;
     public bool inputMovedPlayer;
 
     public Vector2 acceleration;
     public Vector2 velocity;
     public Vector2 position;
 
+    Animator playerAnimator;
+
     Bounds playerBounds;
 
     void Start () {
         velocity = Vector2.zero;
         acceleration = Vector2.zero;
-        playerBounds = renderer.bounds;
+        playerBounds = GetComponent<BoxCollider2D>().bounds;
         onGround = false;
         inputMovedPlayer = false;
+        facingRight = true;
+        walking = false;
+        playerAnimator = GetComponent<Animator>();
+    }
+
+    void updateAnimator() {
+        walking = velocity.x != 0f; 
+        
+        float rotation = 0f;
+
+        if (!facingRight) {
+            rotation = 180f;
+        }
+        
+        transform.eulerAngles = new Vector3(transform.rotation.x, rotation, transform.rotation.z);
+
+        playerAnimator.SetBool("onGround", onGround);
+        playerAnimator.SetBool("walking", walking);
+        playerAnimator.SetBool("facingRight", facingRight);
     }
 
     bool isHit(RaycastHit2D hit) {
@@ -114,13 +137,15 @@ public class PlayerController : MonoBehaviour {
         if (Input.GetKey("a")) {
             if (velocity.x > 0)
                 velocity.x = 0;
-            inputMovedPlayer = true; 
+            inputMovedPlayer = true;
+            facingRight = false;
             acceleration.x -= accX;
         }
 
         if (Input.GetKey("d")) {
             if (velocity.x < 0) 
                 velocity.x = 0;
+            facingRight = true;
             inputMovedPlayer = true;
             acceleration.x += accX; 
         }
@@ -180,7 +205,8 @@ public class PlayerController : MonoBehaviour {
         calculateMovement();
 
         checkCollisions();
-        
+
+        updateAnimator();     
         transform.position = new Vector3(position.x, position.y, transform.position.z);
     }
 }
